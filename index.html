@@ -1,215 +1,283 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Link Filter</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f2f5;
-      padding: 20px;
-      max-width: 900px;
-      margin: auto;
-    }
-
-    textarea, button, select, #output {
-      width: 100%;
-      margin-top: 10px;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 200px;
-    }
-
-    #output {
-      background: #fff;
-      min-height: 200px;
-    }
-
-    button {
-      background: #4CAF50;
-      color: white;
-      cursor: pointer;
-      border: none;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background: #45a049;
-    }
-
-    .clear-btn {
-      background: #f44336;
-    }
-
-    .controls {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
-
-    .options {
-      margin-top: 10px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .status {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #333;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Link Filter Tool</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  body {
+    font-family: "Poppins", sans-serif;
+    background-color: #f2effc;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 40px 0;
+    margin: 0;
+  }
+  .container {
+    width: 750px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    padding: 30px;
+  }
+  h2 {
+    text-align: center;
+    font-weight: 600;
+    color: #3e2b84;
+    margin-bottom: 20px;
+  }
+  .input-wrap {
+    position: relative;
+  }
+  textarea {
+    width: 100%;
+    height: 120px;
+    border: 1px solid #d6ccf2;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 14px;
+    resize: none;
+  }
+  .paste-btn {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    background: transparent;
+    border: none;
+    color: #7b5af5;
+    cursor: pointer;
+    font-size: 18px;
+  }
+  .paste-btn:hover {
+    color: #5a3fcf;
+  }
+  select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #d6ccf2;
+    margin-top: 10px;
+    font-size: 14px;
+    background-color: #f8f6ff;
+  }
+  .buttons {
+    display: flex;
+    justify-content: space-between;
+    margin: 15px 0;
+  }
+  button {
+    flex: 1;
+    margin: 0 5px;
+    background-color: #7b5af5;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+  }
+  button:hover {
+    background-color: #6c4ee6;
+  }
+  .clear-btn {
+    background-color: #e74c3c;
+  }
+  .clear-btn:hover {
+    background-color: #d73828;
+  }
+  .copy-all {
+    background-color: #5ec47b;
+  }
+  .copy-all:hover {
+    background-color: #4dbb69;
+  }
+  .results {
+    margin-top: 20px;
+  }
+  .link-item {
+    background-color: #f8f6ff;
+    border: 1px solid #e0dbfa;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+  }
+  .link-number {
+    font-weight: 600;
+    color: #5a4dbf;
+    margin-right: 10px;
+  }
+  .link-url {
+    flex: 1;
+    overflow-wrap: anywhere;
+    color: #333;
+  }
+  .copy-icon {
+    background: #7b5af5;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .copy-icon.copied {
+    background: #5ec47b;
+  }
+  .copy-status {
+    text-align: center;
+    font-size: 14px;
+    color: #2d7a32;
+    margin-top: 5px;
+    height: 18px;
+  }
+</style>
 </head>
 <body>
+<div class="container">
+  <h2>Link Filter Tool</h2>
 
-  <h2>LinkFilter</h2>
-
-  <textarea id="linkInput" placeholder="Paste your links here..."></textarea>
-
-  <div class="controls">
-    <button onclick="clearAll()" class="clear-btn">Clear All</button>
-    <button onclick="copyLinks()">Copy Filtered Links</button>
+  <div class="input-wrap">
+    <textarea id="inputLinks" placeholder="Paste all your links here..."></textarea>
+    <button class="paste-btn" id="pasteBtn"><i class="fa-solid fa-paste"></i></button>
   </div>
 
-  <div class="options">
-    <label><input type="checkbox" id="groupSubdomains" checked> Group subdomains</label>
-    <span id="duplicateCount"></span>
-  </div>
-
-  <select id="domainSelect" onchange="filterLinks()">
-    <option value="">-- Select a domain --</option>
+  <select id="domainSelect">
+    <option value="">-- Select a domain to filter --</option>
   </select>
 
-  <textarea id="output" placeholder="Filtered links will appear here..."></textarea>
+  <div class="buttons">
+    <button class="clear-btn" onclick="clearAll()">Clear All</button>
+    <button onclick="downloadFiltered()">Download (.txt)</button>
+    <button class="copy-all" id="copyAllBtn" onclick="copyAll()">Copy Links</button>
+  </div>
 
-  <div id="status" class="status"></div>
+  <div class="copy-status" id="copyStatus"></div>
+  <div class="results" id="results"></div>
+</div>
 
-  <script>
-    let allLinks = [];
-    let groupedLinks = {};
-    let duplicates = new Set();
+<script>
+  const inputBox = document.getElementById("inputLinks");
+  const domainSelect = document.getElementById("domainSelect");
+  const resultsBox = document.getElementById("results");
+  const copyAllBtn = document.getElementById("copyAllBtn");
+  const copyStatus = document.getElementById("copyStatus");
+  const pasteBtn = document.getElementById("pasteBtn");
 
-    const linkInput = document.getElementById("linkInput");
-    const domainSelect = document.getElementById("domainSelect");
-    const output = document.getElementById("output");
-    const status = document.getElementById("status");
-    const duplicateCount = document.getElementById("duplicateCount");
+  let filteredLinks = [];
+  let domainLinks = {};
 
-    function showStatus(msg) {
-      status.textContent = msg;
-      clearTimeout(status.timer);
-      status.timer = setTimeout(() => status.textContent = "", 3000);
+  inputBox.addEventListener("input", updateDomains);
+  domainSelect.addEventListener("change", filterLinks);
+
+  pasteBtn.addEventListener("click", async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      inputBox.value = text;
+      updateDomains();
+    } catch {
+      alert("Clipboard permission denied or not supported.");
     }
+  });
 
-    function extractRootDomain(hostname) {
-      const parts = hostname.split('.');
-      return parts.length > 2 ? parts.slice(-2).join('.') : hostname;
-    }
-
-    function processLinks() {
-      const input = linkInput.value;
-      localStorage.setItem("linkInput", input); // Save to local storage
-      const lines = input.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-      allLinks = lines;
-      groupedLinks = {};
-      duplicates = new Set();
-
-      const seen = new Set();
-      const groupSub = document.getElementById("groupSubdomains").checked;
-
-      for (let link of lines) {
-        try {
-          const url = new URL(link);
-          const domain = groupSub ? extractRootDomain(url.hostname) : url.hostname;
-          if (!groupedLinks[domain]) groupedLinks[domain] = [];
-          groupedLinks[domain].push(link);
-
-          if (seen.has(link)) {
-            duplicates.add(link);
-          } else {
-            seen.add(link);
-          }
-        } catch (e) {
-          continue;
-        }
-      }
-
-      updateDomainDropdown();
-      updateDuplicateCount();
-      output.value = "";
-      showStatus("Domains extracted automatically.");
-    }
-
-    function updateDomainDropdown() {
-      domainSelect.innerHTML = '<option value="">-- Select a domain --</option>';
-      Object.keys(groupedLinks).sort().forEach(domain => {
-        const opt = document.createElement("option");
-        opt.value = domain;
-        opt.textContent = `${domain} (${groupedLinks[domain].length})`;
-        domainSelect.appendChild(opt);
-      });
-    }
-
-    function filterLinks() {
-      const selected = domainSelect.value;
-      const filtered = selected ? groupedLinks[selected] || [] : [];
-      output.value = filtered.join("\n");
-    }
-
-    function copyLinks() {
-      const text = output.value;
-      if (text.trim() !== "") {
-        navigator.clipboard.writeText(text).then(() => {
-          showStatus("Filtered links copied to clipboard.");
-        });
-      } else {
-        showStatus("Nothing to copy.");
-      }
-    }
-
-    function clearAll() {
-      linkInput.value = "";
-      domainSelect.innerHTML = '<option value="">-- Select a domain --</option>';
-      output.value = "";
-      duplicateCount.textContent = "";
-      allLinks = [];
-      groupedLinks = {};
-      duplicates = new Set();
-      localStorage.removeItem("linkInput");
-      showStatus("All fields cleared.");
-    }
-
-    function updateDuplicateCount() {
-      if (duplicates.size > 0) {
-        duplicateCount.textContent = `Duplicates found: ${duplicates.size}`;
-      } else {
-        duplicateCount.textContent = "";
-      }
-    }
-
-    // Auto extract on input
-    linkInput.addEventListener("input", processLinks);
-    document.getElementById("groupSubdomains").addEventListener("change", processLinks);
-
-    // Load from localStorage
-    window.addEventListener("load", () => {
-      const saved = localStorage.getItem("linkInput");
-      if (saved) {
-        linkInput.value = saved;
-        processLinks();
-      }
+  function updateDomains() {
+    const text = inputBox.value.trim();
+    const links = text.split(/\s+/).filter(l => l.startsWith("http"));
+    const domains = {};
+    links.forEach(link => {
+      try {
+        const hostname = new URL(link).hostname;
+        if (!domains[hostname]) domains[hostname] = [];
+        domains[hostname].push(link);
+      } catch {}
     });
-  </script>
+    domainLinks = domains;
+    domainSelect.innerHTML = '<option value="">-- Select a domain to filter --</option>';
+    Object.keys(domains).forEach(domain => {
+      const opt = document.createElement("option");
+      opt.value = domain;
+      opt.textContent = `${domain} (${domains[domain].length})`;
+      domainSelect.appendChild(opt);
+    });
+    resultsBox.innerHTML = "";
+    updateCopyAllCount(0);
+  }
 
+  function filterLinks() {
+    const domain = domainSelect.value;
+    if (!domain) return;
+    filteredLinks = domainLinks[domain] || [];
+    displayLinks(filteredLinks);
+    updateCopyAllCount(filteredLinks.length);
+  }
+
+  function displayLinks(links) {
+    resultsBox.innerHTML = "";
+    if (links.length === 0) {
+      resultsBox.innerHTML = "<p>No links found for this domain.</p>";
+      return;
+    }
+    links.forEach((link, index) => {
+      const div = document.createElement("div");
+      div.classList.add("link-item");
+      div.innerHTML = `
+        <span class="link-number">${index + 1}.</span>
+        <span class="link-url">${link}</span>
+        <button class="copy-icon" title="Copy link"><i class="fas fa-copy"></i></button>
+      `;
+      const btn = div.querySelector(".copy-icon");
+      btn.addEventListener("click", async () => {
+        await navigator.clipboard.writeText(link);
+        btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+        btn.classList.add("copied");
+      });
+      resultsBox.appendChild(div);
+    });
+  }
+
+  function clearAll() {
+    inputBox.value = "";
+    domainSelect.innerHTML = '<option value="">-- Select a domain to filter --</option>';
+    resultsBox.innerHTML = "";
+    filteredLinks = [];
+    domainLinks = {};
+    updateCopyAllCount(0);
+  }
+
+  function updateCopyAllCount(count) {
+    copyAllBtn.textContent = count > 0 ? `Copy Links (${count})` : "Copy Links";
+  }
+
+  async function copyAll() {
+    if (filteredLinks.length === 0) return;
+    await navigator.clipboard.writeText(filteredLinks.join("\n"));
+    const originalText = copyAllBtn.textContent;
+    copyAllBtn.textContent = "Copied!";
+    setTimeout(() => (copyAllBtn.textContent = originalText), 1500);
+  }
+
+  function downloadFiltered() {
+    if (filteredLinks.length === 0) return;
+    const domain = domainSelect.value.replace(/\./g, "_");
+    const blob = new Blob([filteredLinks.join("\n")], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${domain}_links.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+</script>
 </body>
 </html>
