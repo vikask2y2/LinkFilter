@@ -186,6 +186,35 @@
     margin-top: 5px;
     height: 18px;
   }
+
+  /* Open button added beside copy button */
+  .open-btn {
+    background: #28a8e0;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    width: 70px;
+    height: 42px;
+    margin-right: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+    flex: none !important;
+  }
+  .open-btn:hover {
+    background: #1a8fc4;
+  }
+
+  /* Opened state - permanent red like copy */
+  .open-btn.opened {
+    background: #e74c3c !important;
+  }
+  .open-btn.opened:hover {
+    background: #c0392b !important;
+  }
 </style>
 </head>
 <body>
@@ -220,7 +249,8 @@
 
   let filteredLinks = [];
   let domainLinks = {};
-  let copiedLinks = new Set(); // ✅ Track copied links globally
+  let copiedLinks = new Set(); // Track copied links globally
+  let openedLinks = new Set(); // Track opened links permanently
 
   inputBox.addEventListener("input", updateDomains);
   domainSelect.addEventListener("change", filterLinks);
@@ -275,10 +305,16 @@
     links.forEach((link, index) => {
       const div = document.createElement("div");
       div.classList.add("link-item");
-      const isCopied = copiedLinks.has(link); // ✅ check if link is copied already
+      const isCopied = copiedLinks.has(link); // check if link is copied already
+      const isOpened = openedLinks.has(link); // check if link was opened already
       div.innerHTML = `
         <span class="link-number">${index + 1}.</span>
         <span class="link-url">${link}</span>
+
+        <button class="open-btn ${isOpened ? 'opened' : ''}" title="Open link">
+          <i class="${isOpened ? 'fa-solid fa-check' : 'fa-solid fa-up-right-from-square'}"></i>
+        </button>
+
         <button class="copy-btn ${isCopied ? 'copied' : ''}" title="Copy link">
           <i class="${isCopied ? 'fa-solid fa-check' : 'fas fa-copy'}"></i>
         </button>
@@ -286,10 +322,21 @@
       const btn = div.querySelector(".copy-btn");
       btn.addEventListener("click", async () => {
         await navigator.clipboard.writeText(link);
-        copiedLinks.add(link); // ✅ remember it
+        copiedLinks.add(link); // remember it
         btn.innerHTML = '<i class="fa-solid fa-check"></i>';
         btn.classList.add("copied");
       });
+
+      // add listener for open button (new)
+      const openBtn = div.querySelector(".open-btn");
+      openBtn.addEventListener("click", () => {
+        window.open(link, "_blank");
+        // mark as opened permanently and update UI
+        openedLinks.add(link);
+        openBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+        openBtn.classList.add("opened");
+      });
+
       resultsBox.appendChild(div);
     });
   }
@@ -300,7 +347,8 @@
     resultsBox.innerHTML = "";
     filteredLinks = [];
     domainLinks = {};
-    copiedLinks.clear(); // ✅ clear when user clicks Clear All
+    copiedLinks.clear(); // clear when user clicks Clear All
+    openedLinks.clear(); // clear opened state as well
     updateCopyAllCount(0);
   }
 
@@ -311,8 +359,8 @@
   async function copyAll() {
     if (filteredLinks.length === 0) return;
     await navigator.clipboard.writeText(filteredLinks.join("\n"));
-    filteredLinks.forEach(link => copiedLinks.add(link)); // ✅ mark all as copied
-    displayLinks(filteredLinks); // ✅ refresh display to show checkmarks
+    filteredLinks.forEach(link => copiedLinks.add(link)); // mark all as copied
+    displayLinks(filteredLinks); // refresh display to show checkmarks
     const originalText = copyAllBtn.textContent;
     copyAllBtn.textContent = "Copied!";
     setTimeout(() => (copyAllBtn.textContent = originalText), 1500);
@@ -320,8 +368,8 @@
 
   function downloadFiltered() {
     if (filteredLinks.length === 0) return;
-    const domain = domainSelect.value.replace(/\./g, "_");
-    const blob = new Blob([filteredLinks.join("\n")], { type: "text/plain" });
+    const domain = domainSelect.value.replace(/\\./g, "_");
+    const blob = new Blob([filteredLinks.join("\\n")], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
