@@ -249,6 +249,7 @@
 
   let filteredLinks = [];
   let domainLinks = {};
+  let allLinksOrdered = [];
   let copiedLinks = new Set(); // Track copied links globally
   let openedLinks = new Set(); // Track opened links permanently
 
@@ -265,9 +266,19 @@
     }
   });
 
+  function extractLinks(text) {
+    // Matches http(s) URLs anywhere in the text, not just whitespace-separated
+    // tokens, so links embedded in code (href="...", url(...), etc.) are caught.
+    const matches = text.match(/https?:\/\/[^\s<>"'`]+/g) || [];
+    // Strip trailing punctuation that commonly follows a URL in prose/code,
+    // e.g. "(see https://x.com)" or "https://x.com," or "https://x.com);"
+    return matches.map(link => link.replace(/[),.;:!?\]}'"`]+$/, ""));
+  }
+
   function updateDomains() {
     const text = inputBox.value.trim();
-    const links = text.split(/\s+/).filter(l => l.startsWith("http"));
+    const links = extractLinks(text);
+    allLinksOrdered = links;
     const domains = {};
     links.forEach(link => {
       try {
@@ -278,6 +289,12 @@
     });
     domainLinks = domains;
     domainSelect.innerHTML = '<option value="">-- Select a domain to filter --</option>';
+    if (links.length > 0) {
+      const allOpt = document.createElement("option");
+      allOpt.value = "__all__";
+      allOpt.textContent = `All domains, original order (${links.length})`;
+      domainSelect.appendChild(allOpt);
+    }
     Object.keys(domains).forEach(domain => {
       const opt = document.createElement("option");
       opt.value = domain;
@@ -291,7 +308,7 @@
   function filterLinks() {
     const domain = domainSelect.value;
     if (!domain) return;
-    filteredLinks = domainLinks[domain] || [];
+    filteredLinks = domain === "__all__" ? allLinksOrdered : (domainLinks[domain] || []);
     displayLinks(filteredLinks);
     updateCopyAllCount(filteredLinks.length);
   }
@@ -347,6 +364,7 @@
     resultsBox.innerHTML = "";
     filteredLinks = [];
     domainLinks = {};
+    allLinksOrdered = [];
     copiedLinks.clear(); // clear when user clicks Clear All
     openedLinks.clear(); // clear opened state as well
     updateCopyAllCount(0);
@@ -368,7 +386,8 @@
 
   function downloadFiltered() {
     if (filteredLinks.length === 0) return;
-    const domain = domainSelect.value.replace(/\\./g, "_");
+    const domainValue = domainSelect.value;
+    const domain = domainValue === "__all__" ? "all" : domainValue.replace(/\\./g, "_");
     const blob = new Blob([filteredLinks.join("\\n")], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
