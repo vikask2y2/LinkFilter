@@ -292,7 +292,7 @@
     if (links.length > 0) {
       const allOpt = document.createElement("option");
       allOpt.value = "__all__";
-      allOpt.textContent = `All domains, original order (${links.length})`;
+      allOpt.textContent = `All domains (${links.length})`;
       domainSelect.appendChild(allOpt);
     }
     Object.keys(domains).forEach(domain => {
